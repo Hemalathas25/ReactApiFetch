@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Layout,
-  Menu,
-  Dropdown,
-  Spin,
-  Alert,
-  Button,
-  Typography
-} from 'antd';
+import { Table, Spin, Typography } from 'antd';
 
-const { Header } = Layout;
 const { Title } = Typography;
 
 const DataFetcher = () => {
@@ -18,93 +9,56 @@ const DataFetcher = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts/1/comments');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
   }, []);
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch('https://jsonplaceholder.typicode.com/posts/1/comments');
-      if (!response.ok) {
-        throw new Error('Network response was not on.');
-      }
-      const data = await response.json();
-      setData(data);
-      setLoading(false);
-    } catch (error) {
-      setError(error.message);
-      setLoading(false);
-    }
-  };
+  if (loading) {
+    return <Spin size="large" />;
+  }
 
-  /**
-   *  const menu = (
-    <Menu>
-      {data.map(item => (
-        <Menu.Item key={item.id}>{item.email}</Menu.Item>
-      ))}
-    </Menu>
-  );
-  */
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
-  const menu = (
-    <Menu>
-      {data.map(item => (
-        <Menu.Item key={item.id}>
-          <div>
-            <strong>Name:</strong> {item.name}<br />
-            <strong>Email:</strong> {item.email}<br />
-            <strong>User ID:</strong> {item.postId}
-          </div>
-        </Menu.Item>
-      ))}
-    </Menu>
-  );
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: 'Phone',
+      dataIndex: 'phone',
+      key: 'phone',
+    },
+  ];
 
   return (
-   /**  <div>
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p>Error: {error}</p>
-      ) : (
-        <ul>
-          {data.map ((item) => (
-            <li key={item.id}>{item.email}</li>
-          ))}
-        </ul>
-      ) }
-    </div> */
-
-    <Layout>
-        <Header
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            justifyContent: 'space-between' 
-          }}>
-
-        <Title 
-          level={3}
-          style={{ 
-            color: 'white',
-            margin: 0 
-          }}
-        >User Information</Title>
-
-        {loading ? (
-          <Spin size='large' />
-        ) : error ? (
-          <Alert message="Error" description={error} type="error" />
-        ) : (
-         <Dropdown overlay={menu} trigger={['click']}>
-          <Button style={{ marginLeft: '16px '}}>
-            Select user info<span>▼</span>
-          </Button>
-         </Dropdown>
-        )}
-      </Header>
-    </Layout>
-  )
+    <div style={{ padding: '20px' }}>
+      <Title level={2}>User List</Title>
+      <Table dataSource={data} columns={columns} rowKey="id" />
+    </div>
+  );
 };
 
 export default DataFetcher;
